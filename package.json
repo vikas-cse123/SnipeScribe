@@ -1,0 +1,10 @@
+{
+  "main": "app.js",
+  "scripts": {
+    "dev": "node --watch  --env-file=.env app.js"
+  },
+  "type": "module",
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
