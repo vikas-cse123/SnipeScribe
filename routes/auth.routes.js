@@ -1,10 +1,10 @@
 import express from "express"
-import { createPendingUser } from "../controller/auth.controller.js"
-import { sendEmail } from "../services/sendEmail.service.js"
+import { createPendingUser, requestSignupOtp, } from "../controller/auth.controller.js"
 const router = express.Router()
 
 
 router.post("/users/pending",createPendingUser)
+router.post("/signup/otp",requestSignupOtp)
 
 
 
