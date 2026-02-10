@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt"
 const otpSchema = mongoose.Schema({
     otp:{
         type:String,
@@ -16,5 +17,8 @@ const otpSchema = mongoose.Schema({
 
 })
 
+otpSchema.pre("save",async function(){
+    this.otp = await bcrypt.hash(this.otp,10)
+})
 const Otp = mongoose.model("Otp",otpSchema)
 export default Otp
