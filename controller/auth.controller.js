@@ -30,3 +30,4 @@ export const createPendingUser = async (req, res,next) => {
     next(error)
   }
 };
+
