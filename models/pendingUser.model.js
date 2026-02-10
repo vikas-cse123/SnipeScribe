@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import bcrypt from "bcrypt"
 const pendingUserSchema = await mongoose.Schema(
   {
     name: {
@@ -27,6 +28,12 @@ const pendingUserSchema = await mongoose.Schema(
   },
   { timeStamps: true },
 );
+
+pendingUserSchema.pre("save",async function(){
+  console.log("qqqqq");
+  console.log(this);
+  this.password = await bcrypt.hash(this.password,10)
+})
 
 const pendingUser = mongoose.model("PendingUser", pendingUserSchema);
 export default pendingUser;
