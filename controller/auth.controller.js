@@ -1,5 +1,6 @@
 import Otp from "../models/otp.model.js";
 import PendingUser from "../models/pendingUser.model.js";
+import Session from "../models/session.model.js";
 import User from "../models/user.model.js";
 import { sendEmail } from "../services/sendEmail.service.js";
 import { formatValidationError } from "../utils/errorFormatter.js";
@@ -101,14 +102,52 @@ export const verifySignupOtp = async (req, res) => {
     await PendingUser.deleteOne({ email });
     await otp.deleteOne();
 
-    return res
-      .status(201)
-      .json({ success: true,  message: "Your email has been verified and your account is now active."});
+    return res.status(201).json({
+      success: true,
+      message: "Your email has been verified and your account is now active.",
+    });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
       success: true,
       message: "Unable to verify verification code.Please try again later.",
+    });
+  }
+};
+
+export const loginUser = async (req, res) => {
+  try {
+    const { email, password, isRememberMe } = req.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid email or password." });
+    }
+    const isPasswordCorrect = await user.verifyPassword(password);
+    if (!isPasswordCorrect) {
+      return res
+        .status(401)
+        .json({ success: false, message: "Invalid email or password.." });
+    }
+    const sessionTime = isRememberMe
+      ? 1000 * 60 * 60 * 24 * 30
+      : 1000 * 60 * 60 * 24 * 7;
+
+    const session = await Session.create({
+      userId: user._id,
+      expiresAt: new Date(Date.now() + sessionTime),
+    });
+    res.cookie("sid", session.id, {
+      httpOnly: true,
+      maxAge: sessionTime,
+    });
+    res.status(200).json({ success: true, message: "Logged in successfully." });
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      success: true,
+      message: "Login failed. Please try again later.",
     });
   }
 };
