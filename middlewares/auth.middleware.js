@@ -4,7 +4,6 @@ export const authenticateUser = async (req, res, next) => {
   try {
     console.log(req.cookies);
     const session = await Session.findById(req.cookies.sid);
-    console.log(session);
     if (!session) {
       return res
         .status(401)
@@ -14,7 +13,6 @@ export const authenticateUser = async (req, res, next) => {
         });
     }
     const user = await User.findById(session.userId);
-    console.log({ user });
     if (!user) {
       return res
         .status(401)
