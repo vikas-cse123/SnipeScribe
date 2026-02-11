@@ -20,6 +20,10 @@ const userSchema = await mongoose.Schema(
       required: [true, "Password is required."],
       minLength: [8, "Password must be at least 8 characters."],
     },
+     bookmarks:{
+        type:[mongoose.Types.ObjectId],
+
+    }
   },
   { timeStamps: true },
 );
