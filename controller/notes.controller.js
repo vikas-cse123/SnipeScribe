@@ -58,3 +58,38 @@ export const updateNote = async (req, res) => {
   }
 };
 
+export const getNotes = async (req, res) => {
+  try {
+    let { page = 1, limit = 10 } = req.query;
+    console.log({ page, limit });
+    page = parseInt(page);
+    limit = parseInt(limit);
+    if (page < 1) page = 1;
+    if (limit < 1) limit = 1;
+    if (limit > 50) limit = 50;
+    const skip = (page - 1) * limit;
+
+    const notes = await Note.find({ userId: req.user._id })
+      .sort({ createdAt: -1 })
+
+      .skip(skip)
+      .limit(limit);
+    const totalNotes = await Note.countDocuments({ userId: req.user._id });
+    const totalPages = Math.ceil(totalNotes / limit);
+    return res.status(200).json({
+      success: true,
+      message: "",
+      data: {
+        notes,
+        currentPage: page,
+        totalPages,
+        totalNotes,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    });
+  } catch (error) {
+    console.log(error);
+  }
+};
