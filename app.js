@@ -1,6 +1,8 @@
 import express from "express";
 import authRoutes from "./routes/auth.routes.js"
+import notesRoutes from "./routes/notes.routes.js"
 import { connectDb } from "./config/db.config.js";
+import cookieParser from "cookie-parser";
 
 await connectDb();
 const app = express();
@@ -8,11 +10,14 @@ const PORT = process.env.PORT;
 
 app.use(express.json())
 
+app.use(cookieParser())
+
 app.get("/", (req, res) => {
   res.end("Hello");
 });
 
 app.use("/auth", authRoutes);
+app.use("/notes",notesRoutes)
 
 
 app.use((err,req,res,next) => {
