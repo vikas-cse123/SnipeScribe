@@ -78,9 +78,8 @@ export const getNotes = async (req, res) => {
     const totalPages = Math.ceil(totalNotes / limit);
     return res.status(200).json({
       success: true,
-      message: "",
-      data: {
-        notes,
+      data:notes,
+      pagination: {
         currentPage: page,
         totalPages,
         totalNotes,
@@ -91,5 +90,6 @@ export const getNotes = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    next(error)
   }
 };
