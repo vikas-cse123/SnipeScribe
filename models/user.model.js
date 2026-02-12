@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import bcrypt from "bcrypt"
+import bcrypt from "bcrypt";
 const userSchema = await mongoose.Schema(
   {
     name: {
@@ -20,34 +20,35 @@ const userSchema = await mongoose.Schema(
       required: [true, "Password is required."],
       minLength: [8, "Password must be at least 8 characters."],
     },
-     bookmarks:{
-        type:[mongoose.Types.ObjectId],
-
-    },
-    deletedNotes:[
+    bookmarks: [
       {
-        noteId:{
-          type:mongoose.Schema.Types.ObjectId,
-          ref:"Note",
-          required:true
+        type: mongoose.Schema.Types.ObjectId,
+      },
+    ],
+    deletedNotes: [
+      {
+        noteId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Note",
+          required: true,
         },
-        deletedAt:{
-          type:Date,
-          default:Date.now
-        }
-      }
-    ]
-  
-
+        deletedAt: {
+          type: Date,
+          default: Date.now,
+        },
+      },
+    ],
+    pinnedNotes: [{
+      type:mongoose.Schema.Types.ObjectId,
+      
+    }],
   },
   { timeStamps: true },
 );
 
-
-userSchema.methods.verifyPassword = async function(password){
-  console.log(this,password);
-  return await bcrypt.compare(password,this.password)
-
-}
+userSchema.methods.verifyPassword = async function (password) {
+  console.log(this, password);
+  return await bcrypt.compare(password, this.password);
+};
 const User = mongoose.model("User", userSchema);
 export default User;

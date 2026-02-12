@@ -26,8 +26,6 @@ export const createNote = async (req, res) => {
   }
 };
 
-
-
 export const updateNote = async (req, res) => {
   try {
     const title = req.body.title ? req.body.title : undefined;
@@ -87,9 +85,18 @@ export const getNotes = async (req, res) => {
   }
 };
 
-
-export const moveNoteToTrash= async (req, res) => {
+export const moveNoteToTrash = async (req, res) => {
   try {
+    const pinnedNotesId = req.user.pinnedNotes.map((noteId) =>
+      noteId.toString(),
+    );
+    if (pinnedNotesId.includes(req.note._id.toString())) {
+      await User.updateOne(
+        { _id: req.user._id },
+        { $pull: { pinnedNotes: req.note._id } },
+      );
+    }
+
     const result = await Note.updateOne(
       { _id: req.note._id, isDeleted: false },
       { isDeleted: true, deletedAt: Date.now() },
@@ -158,52 +165,123 @@ export const restoreNote = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    next(error)
+    next(error);
   }
 };
 
-export const getTrashedNotes = async (req,res) => {
+export const getTrashedNotes = async (req, res) => {
   try {
+    let { page = 1, limit = 3 } = req.query;
+    page = parseInt(page);
+    limit = parseInt(limit);
+    if (page < 1) page = 1;
+    if (limit < 1) limit = 1;
+    if (limit > 50) limit = 50;
 
-    let {page=1,limit=3} = req.query
-    page = parseInt(page)
-    limit = parseInt(limit)
-    if(page< 1) page =1
-    if(limit<1) limit=1
-    if(limit>50) limit = 50
-
-    const startIdx = (page-1)*limit
-    const currentPageNotesId = [...req.user.deletedNotes].reverse().slice(startIdx,startIdx+limit).map(({noteId} )=> noteId)
-    const notes = await Note.find({_id:{$in:currentPageNotesId},userId:req.user._id}).sort({createdAt:-1})
-    const totalNotes = req.user.deletedNotes.length
-    const totalPages = Math.ceil(totalNotes/limit)
-    return res.status(200).json({success:true,data:notes,pagination:{
-      currentPage:page,
-      totalPages,
-      totalNotes,
-      limit,
-      hasNextPage:page<totalPages,
-      hasPrevPage:page>1
-    }})
-
+    const startIdx = (page - 1) * limit;
+    const currentPageNotesId = [...req.user.deletedNotes]
+      .reverse()
+      .slice(startIdx, startIdx + limit)
+      .map(({ noteId }) => noteId);
+    const notes = await Note.find({
+      _id: { $in: currentPageNotesId },
+      userId: req.user._id,
+    }).sort({ createdAt: -1 });
+    const totalNotes = req.user.deletedNotes.length;
+    const totalPages = Math.ceil(totalNotes / limit);
+    return res.status(200).json({
+      success: true,
+      data: notes,
+      pagination: {
+        currentPage: page,
+        totalPages,
+        totalNotes,
+        limit,
+        hasNextPage: page < totalPages,
+        hasPrevPage: page > 1,
+      },
+    });
   } catch (error) {
-    next(error)
-    
-    
+    next(error);
   }
-}
+};
 
-export const emptyTrash = async (req,res) => {
+export const emptyTrash = async (req, res) => {
   try {
-    const allNotesId = req.user.deletedNotes.map(({noteId}) => noteId)
-    await Note.deleteMany({_id:{$in:allNotesId}})
-     await User.updateOne({_id:req.user._id},{$set:{deletedNotes:[]}})
-    return res.status(204).end()
+    const allNotesId = req.user.deletedNotes.map(({ noteId }) => noteId);
+    await Note.deleteMany({ _id: { $in: allNotesId } });
+    await User.updateOne({ _id: req.user._id }, { $set: { deletedNotes: [] } });
+    return res.status(204).end();
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
 
+export const togglePinNote = async (req, res, next) => {
+  try {
+    const { noteId } = req.params;
+    if (req.note.isDeleted) {
+      return res.status(404).json({
+        success: false,
+        message: "Note not found.",
+      });
+    }
 
+    const pinnedNoteIds = req.user.pinnedNotes.map((id) => id.toString());
+    const isPinned = pinnedNoteIds.includes(noteId);
+    if (isPinned) {
+      await User.updateOne(
+        { _id: req.user._id },
+        { $pull: { pinnedNotes: req.note._id } },
+      );
+      return res
+        .status(200)
+        .json({ success: true, message: "Note unpinned successfully." });
+    }
+
+    if (pinnedNoteIds.length >= 3) {
+      return res.status(403).json({
+        success: false,
+        message: "You can only pin up to 3 notes. Unpin one to add another.",
+      });
+    }
+
+    await User.updateOne(
+      { _id: req.user._id },
+      { $addToSet: { pinnedNotes: req.note._id } },
+    );
+    return res
+      .status(200)
+      .json({ success: true, message: "Note pinned successfully." });
+  } catch (error) {
+    console.log(error);
+    next(error);
+  }
+};
+
+export const getPinnedNotes = async (req,res,next) => {
+  try {
+    console.log(req.user);
+      if (!req.user.pinnedNotes.length) {
+      return res.status(200).json({
+        success: true,
+        data: []
+      });
+    }
+
+    const allPinnedNoteIds = req.user.pinnedNotes.map(noteId => noteId.toString())
+    const pinnedNotes = await Note.find({_id:{$in:allPinnedNoteIds},isDeleted:false})
+    const orderedPinnedNotes = []
+    pinnedNotes.forEach(note => {
+      const idx = allPinnedNoteIds.indexOf(note._id.toString())
+      orderedPinnedNotes[idx] = note
+    })
+    return res.status(200).json({success:true,data:orderedPinnedNotes})
     
   } catch (error) {
     console.log(error);
     next(error)
+    
   }
 }
