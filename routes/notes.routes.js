@@ -1,13 +1,18 @@
 import express from "express"
-import {  createNote, deleteNote, getNotes, updateNote } from "../controller/notes.controller.js"
+import {  createNote,emptyTrash,getNotes,  getTrashedNotes,  moveNoteToTrash, permanentlyDeleteNote,   restoreNote,  updateNote } from "../controller/notes.controller.js"
 import { authenticateUser } from "../middlewares/auth.middleware.js"
 import { verifyNoteOwnership } from "../middlewares/verifyNoteOwnership.middleware.js"
 const router = express.Router()
 
-router.post("/",authenticateUser,createNote)
-router.delete("/:noteId",authenticateUser,verifyNoteOwnership,deleteNote)
-router.patch("/:noteId",authenticateUser,verifyNoteOwnership,updateNote)
 router.get("/",authenticateUser,getNotes)
+router.post("/",authenticateUser,createNote)
+router.delete("/trash",authenticateUser,emptyTrash)
+router.get("/trash",authenticateUser,getTrashedNotes)
+router.patch("/:noteId",authenticateUser,verifyNoteOwnership,updateNote)
+router.patch("/:noteId/trash",authenticateUser,verifyNoteOwnership,moveNoteToTrash)
+router.delete("/:noteId",authenticateUser,verifyNoteOwnership,permanentlyDeleteNote)
+router.patch("/:noteId/restore",authenticateUser,verifyNoteOwnership,restoreNote)
+
 
 
 

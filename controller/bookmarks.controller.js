@@ -72,13 +72,15 @@ export const getBookmarks = async (req, res) => {
       startIdx,
       startIdx + limit,
     );
-    const bookmarks = await Note.aggregate([{$match:{_id:{$in:currentPageBookmarkIds}}},
-      {$addFields:{
-        orderIndex:{$indexOfArray:[currentPageBookmarkIds,"$_id"]}
-      }},
-      {$sort:{orderIndex:1}}
-    ])
-
+    const bookmarks = await Note.aggregate([
+      { $match: { _id: { $in: currentPageBookmarkIds } } },
+      {
+        $addFields: {
+          orderIndex: { $indexOfArray: [currentPageBookmarkIds, "$_id"] },
+        },
+      },
+      { $sort: { orderIndex: 1 } },
+    ]);
 
     const totalPages = Math.ceil(allBookmarkIds.length / limit);
     return res.status(200).json({

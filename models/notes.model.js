@@ -12,6 +12,15 @@ const notesSchema = new mongoose.Schema({
     description:{
         type:String,
         required:true
+    },
+    
+    isDeleted:{
+        type:Boolean,
+        default:false
+    },
+    deletedAt:{
+        type:Date,
+        expires:60*60*24*30
     }
 
 },{timestamps:true})

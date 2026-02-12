@@ -23,7 +23,22 @@ const userSchema = await mongoose.Schema(
      bookmarks:{
         type:[mongoose.Types.ObjectId],
 
-    }
+    },
+    deletedNotes:[
+      {
+        noteId:{
+          type:mongoose.Schema.Types.ObjectId,
+          ref:"Note",
+          required:true
+        },
+        deletedAt:{
+          type:Date,
+          default:Date.now
+        }
+      }
+    ]
+  
+
   },
   { timeStamps: true },
 );
