@@ -46,26 +46,37 @@ export const updateNote = async (req, res) => {
   }
 };
 
-export const getNotes = async (req, res) => {
+export const getNotes = async (req, res,next) => {
   try {
-    let { page = 1, limit = 10 } = req.query;
-    console.log({ page, limit });
+    let { page = 1, limit = 10, search_query: searchQuery } = req.query;
+    const filter = {
+      userId :req.user._id,
+      isDeleted :false
+
+    };
+    if (searchQuery && searchQuery.trim()) {
+      filter.$text = {$search:`"${searchQuery.trim()}"`}
+    }
+    
+    console.log(filter);
+
     page = parseInt(page);
     limit = parseInt(limit);
     if (page < 1) page = 1;
     if (limit < 1) limit = 1;
     if (limit > 50) limit = 50;
     const skip = (page - 1) * limit;
-
-    const notes = await Note.find({ userId: req.user._id, isDeleted: false })
+    console.log({ page, limit, skip, searchQuery });
+   
+        const notes = await Note.find(filter)
       .sort({ createdAt: -1 })
 
       .skip(skip)
       .limit(limit);
-    const totalNotes = await Note.countDocuments({
-      userId: req.user._id,
-      isDeleted: false,
-    });
+    console.log(notes.length);
+
+      const totalNotes = await Note.countDocuments(filter);
+    console.log({ totalNotes });
     const totalPages = Math.ceil(totalNotes / limit);
     return res.status(200).json({
       success: true,
@@ -260,28 +271,31 @@ export const togglePinNote = async (req, res, next) => {
   }
 };
 
-export const getPinnedNotes = async (req,res,next) => {
+export const getPinnedNotes = async (req, res, next) => {
   try {
     console.log(req.user);
-      if (!req.user.pinnedNotes.length) {
+    if (!req.user.pinnedNotes.length) {
       return res.status(200).json({
         success: true,
-        data: []
+        data: [],
       });
     }
 
-    const allPinnedNoteIds = req.user.pinnedNotes.map(noteId => noteId.toString())
-    const pinnedNotes = await Note.find({_id:{$in:allPinnedNoteIds},isDeleted:false})
-    const orderedPinnedNotes = []
-    pinnedNotes.forEach(note => {
-      const idx = allPinnedNoteIds.indexOf(note._id.toString())
-      orderedPinnedNotes[idx] = note
-    })
-    return res.status(200).json({success:true,data:orderedPinnedNotes})
-    
+    const allPinnedNoteIds = req.user.pinnedNotes.map((noteId) =>
+      noteId.toString(),
+    );
+    const pinnedNotes = await Note.find({
+      _id: { $in: allPinnedNoteIds },
+      isDeleted: false,
+    });
+    const orderedPinnedNotes = [];
+    pinnedNotes.forEach((note) => {
+      const idx = allPinnedNoteIds.indexOf(note._id.toString());
+      orderedPinnedNotes[idx] = note;
+    });
+    return res.status(200).json({ success: true, data: orderedPinnedNotes });
   } catch (error) {
     console.log(error);
-    next(error)
-    
+    next(error);
   }
-}
+};

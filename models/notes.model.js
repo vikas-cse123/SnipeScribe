@@ -26,5 +26,7 @@ const notesSchema = new mongoose.Schema({
 },{timestamps:true})
 
 
+notesSchema.index({title:"text",description:"text"})
+
 const Note = mongoose.model("Note",notesSchema)
 export default Note
