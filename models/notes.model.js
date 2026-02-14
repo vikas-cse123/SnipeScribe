@@ -21,6 +21,14 @@ const notesSchema = new mongoose.Schema({
     deletedAt:{
         type:Date,
         expires:60*60*24*30
+    },
+    isPublic:{
+        type:Boolean,
+        default:false
+    },
+    shareToken:{
+        type:String,
+        
     }
 
 },{timestamps:true})
