@@ -310,3 +310,15 @@ export const getPinnedNotes = async (req, res, next) => {
     next(error);
   }
 };
+
+export const getNoteById = async (req,res,) => {
+  try {
+    
+    return res.status(200).json({success:true,data:req.note})
+    
+  } catch (error) {
+    console.log(error);
+    next(error)
+    
+  }
+}
