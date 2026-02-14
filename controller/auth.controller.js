@@ -122,7 +122,7 @@ export const loginUser = async (req, res) => {
     if (!user) {
       return res
         .status(401)
-        .json({ success: false, message: "Invalid email or password." });
+        .json({ success: false, message: "Invalid email or password.." });
     }
     const isPasswordCorrect = await user.verifyPassword(password);
     if (!isPasswordCorrect) {
@@ -151,3 +151,16 @@ export const loginUser = async (req, res) => {
     });
   }
 };
+
+export const logout = async (req,res) => {
+  try {
+    const {sid} = req.cookies
+    const session = Session.findByIdAndDelete(sid)
+    console.log({session});
+    res.redirect("/login")
+    
+  } catch (error) {
+    console.log(error);
+    
+  }
+}

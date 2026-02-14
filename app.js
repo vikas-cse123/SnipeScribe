@@ -3,6 +3,7 @@ import authRoutes from "./routes/auth.routes.js"
 import notesRoutes from "./routes/notes.routes.js"
 import bookmarksRoutes from "./routes/bookmarks.routes.js"
 import sharedRoutes from "./routes/shared.route.js"
+import userRoutes from "./routes/users.routes.js"
 import { connectDb } from "./config/db.config.js";
 import cookieParser from "cookie-parser";
 
@@ -21,6 +22,7 @@ app.get("/", (req, res) => {
 app.use("/auth", authRoutes);
 app.use("/notes",notesRoutes)
 app.use("/shared",sharedRoutes)
+app.use("/users",userRoutes)
 app.use("/bookmarks",bookmarksRoutes)
 
 
