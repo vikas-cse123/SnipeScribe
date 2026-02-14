@@ -46,19 +46,33 @@ export const updateNote = async (req, res) => {
   }
 };
 
-export const getNotes = async (req, res,next) => {
-  try {
-    let { page = 1, limit = 10, search_query: searchQuery } = req.query;
-    const filter = {
-      userId :req.user._id,
-      isDeleted :false
 
+
+
+export const getNotes = async (req, res, next) => {
+  try {
+    let { page = 1, limit = 10, search_query: searchQuery, day } = req.query;
+    day = day?.toLowerCase().trim()
+    console.log({ day });
+    const filter = {
+      userId: req.user._id,
+      isDeleted: false,
     };
     if (searchQuery && searchQuery.trim()) {
-      filter.$text = {$search:`"${searchQuery.trim()}"`}
+      filter.$text = { $search: `"${searchQuery.trim()}"` };
+    }
+    if(day){
+      const range = getDateRange(day)
+      console.log(range.start.toLocaleString(),range.end.toLocaleString());
+      if(range){
+        filter.createdAt = {
+      $gte: range.start,
+      $lte: range.end,
+    };
+
+      }
     }
     
-    console.log(filter);
 
     page = parseInt(page);
     limit = parseInt(limit);
@@ -66,17 +80,14 @@ export const getNotes = async (req, res,next) => {
     if (limit < 1) limit = 1;
     if (limit > 50) limit = 50;
     const skip = (page - 1) * limit;
-    console.log({ page, limit, skip, searchQuery });
-   
-        const notes = await Note.find(filter)
+
+    const notes = await Note.find(filter)
       .sort({ createdAt: -1 })
 
       .skip(skip)
       .limit(limit);
-    console.log(notes.length);
 
-      const totalNotes = await Note.countDocuments(filter);
-    console.log({ totalNotes });
+    const totalNotes = await Note.countDocuments(filter);
     const totalPages = Math.ceil(totalNotes / limit);
     return res.status(200).json({
       success: true,
