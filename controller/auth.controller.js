@@ -152,15 +152,16 @@ export const loginUser = async (req, res) => {
   }
 };
 
-export const logout = async (req,res) => {
+export const logout = async (req, res) => {
   try {
-    const {sid} = req.cookies
-    const session = Session.findByIdAndDelete(sid)
-    console.log({session});
-    res.redirect("/login")
-    
+    const { sid } = req.cookies;
+    await Session.findByIdAndDelete(sid);
+    res.clearCookie("sid", { httpOnly: true });
+    res
+      .status(200)
+      .json({ success: true, message: "Logged out successfully." });
   } catch (error) {
     console.log(error);
-    
+    return res.status(500).json({ success: false, message: "Logout failed" });
   }
-}
+};
