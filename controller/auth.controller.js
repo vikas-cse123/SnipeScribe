@@ -165,3 +165,20 @@ export const logout = async (req, res) => {
     return res.status(500).json({ success: false, message: "Logout failed" });
   }
 };
+
+export const logoutAllDevices = async (req, res) => {
+  try {
+    const { sid } = req.cookies;
+    await Session.deleteMany({ userId: req.user._id });
+    res.clearCookie("sid", { httpOnly: true });
+    return res.status(200).json({
+      success: true,
+      message: "Logged out from all devices successfully",
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ success: false, message: "Failed to logout from all devices" });
+  }
+};
